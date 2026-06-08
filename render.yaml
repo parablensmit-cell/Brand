@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: hotel-brand-universe
+    env: static
+    staticPublishPath: .
+    buildCommand: ""
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=86400
+      - path: /brands_data.json
+        name: Cache-Control
+        value: public, max-age=3600
