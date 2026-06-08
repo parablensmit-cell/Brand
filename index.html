@@ -2,1118 +2,952 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>Hotel Brand Universe — STR Chain Scales 2026</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap');
 
-  :root {
-    --bg: #0a0a0f;
-    --bg2: #12121a;
-    --bg3: #1a1a26;
-    --panel: #16161f;
-    --border: rgba(255,255,255,0.07);
-    --text: #e8e8f0;
-    --text-dim: #6b6b80;
-    --text-muted: #40404f;
+:root {
+  --bg: #080810;
+  --bg2: #0f0f1a;
+  --bg3: #161624;
+  --panel: #101018;
+  --border: rgba(255,255,255,0.06);
+  --text: #dddde8;
+  --text-dim: #6060780;
+  --text-muted: #383848;
+  --accent: #d4a843;
 
-    /* Chain scale colors - from luxury (gold) to economy (steel) */
-    --luxury:     #f0c060;
-    --upper-upscale: #e07d5a;
-    --upscale:    #7ec8a0;
-    --upper-mid:  #5aa8d8;
-    --midscale:   #9080d8;
-    --economy:    #6888a0;
+  --c-luxury:     #d4a843;
+  --c-uu:         #c96b44;
+  --c-upscale:    #5fb882;
+  --c-um:         #4898c8;
+  --c-mid:        #8a6fd8;
+  --c-economy:    #5a7a94;
+}
 
-    --node-r: 6px;
-    --accent: #f0c060;
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    height: 100dvh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
+/* ── TOPBAR ── */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  min-height: 48px;
+}
 
-  /* ── TOP BAR ── */
-  #topbar {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 10px 16px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-    z-index: 50;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-  }
+#logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  color: var(--accent);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
 
-  #topbar h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 15px;
-    font-weight: 400;
-    color: var(--accent);
-    white-space: nowrap;
-    letter-spacing: 0.02em;
-  }
+#search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 130px;
+  max-width: 280px;
+}
+#search-wrap svg {
+  position: absolute;
+  left: 9px; top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.35;
+}
+#search {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 10px 6px 30px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  outline: none;
+  transition: border-color .2s;
+}
+#search:focus { border-color: rgba(212,168,67,.35); }
+#search::placeholder { color: var(--text-muted); }
 
-  #search-wrap {
-    flex: 1;
-    min-width: 160px;
-    max-width: 340px;
-    position: relative;
-  }
-  #search {
-    width: 100%;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 7px 12px 7px 32px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  #search:focus { border-color: rgba(240,192,96,0.4); }
-  #search::placeholder { color: var(--text-muted); }
-  .search-icon {
-    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-    color: var(--text-muted); font-size: 13px; pointer-events: none;
-  }
+/* ── LEGEND PILLS ── */
+#legend {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.spill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 9px 4px 7px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  transition: opacity .15s, transform .15s;
+  white-space: nowrap;
+  user-select: none;
+}
+.spill:hover { transform: translateY(-1px); }
+.spill.off { opacity: .22; }
+.sdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
-  /* ── SCALE LEGEND / FILTERS ── */
-  #legend {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .scale-pill {
-    display: flex; align-items: center; gap: 5px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1.5px solid transparent;
-    cursor: pointer;
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    transition: all 0.15s;
-    opacity: 0.85;
-    white-space: nowrap;
-  }
-  .scale-pill:hover { opacity: 1; transform: translateY(-1px); }
-  .scale-pill.active { opacity: 1; }
-  .scale-pill.inactive { opacity: 0.3; }
-  .scale-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+/* ── CONTROLS ── */
+#controls { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 
-  /* ── VIEW TOGGLE ── */
-  #view-toggle {
-    display: flex;
-    background: var(--bg3);
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  .view-btn {
-    padding: 6px 12px;
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    background: transparent;
-    color: var(--text-dim);
-    border: none;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .view-btn.active { background: rgba(240,192,96,0.15); color: var(--accent); }
+#region-sel {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 9px;
+  color: var(--text);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  outline: none;
+  cursor: pointer;
+}
 
-  /* ── REGION FILTER ── */
-  #region-select {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 10px;
-    color: var(--text);
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    outline: none;
-    cursor: pointer;
-  }
+#view-toggle {
+  display: flex;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.vbtn {
+  padding: 5px 10px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  background: transparent;
+  color: #555565;
+  border: none;
+  cursor: pointer;
+  transition: all .15s;
+}
+.vbtn.on { background: rgba(212,168,67,.12); color: var(--accent); }
 
-  /* ── MAIN CANVAS ── */
-  #canvas {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-  }
+/* ── CANVAS ── */
+#canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
 
-  #svg-container {
-    width: 100%;
-    height: 100%;
-  }
+#svg-wrap { width: 100%; height: 100%; }
+svg { width: 100%; height: 100%; cursor: grab; }
+svg.drag { cursor: grabbing; }
 
-  svg {
-    width: 100%; height: 100%;
-    cursor: grab;
-  }
-  svg.dragging { cursor: grabbing; }
+/* ── SVG ELEMENTS ── */
+.zone-bg { opacity: .025; pointer-events: none; }
+.zone-label { pointer-events: none; font-family: 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
+.zone-divider { stroke-dasharray: 4 6; opacity: .08; }
+.op-circle { cursor: pointer; transition: opacity .15s; }
+.op-circle:hover { opacity: .9 !important; }
+.op-label { pointer-events: none; font-family: 'Inter', sans-serif; }
+.br-circle { pointer-events: all; cursor: pointer; }
+.edge { fill: none; pointer-events: none; }
+.edge.hi { opacity: .7 !important; stroke-width: 1.5 !important; }
+.br-label { pointer-events: none; font-family: 'JetBrains Mono', monospace; }
 
-  /* ── NODES ── */
-  .operator-node circle {
-    cursor: pointer;
-    transition: r 0.2s;
-  }
-  .operator-node text {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 11px;
-    fill: var(--text);
-    pointer-events: none;
-    dominant-baseline: middle;
-  }
-  .brand-node circle {
-    cursor: pointer;
-  }
-  .brand-node text {
-    font-family: 'DM Mono', monospace;
-    font-size: 9px;
-    fill: rgba(232,232,240,0.75);
-    pointer-events: none;
-  }
-  .link {
-    fill: none;
-    stroke-width: 1;
-    opacity: 0.2;
-  }
-  .link.highlighted { opacity: 0.8; stroke-width: 1.5; }
+/* ── TOOLTIP ── */
+#tip {
+  position: fixed;
+  background: var(--panel);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 10px;
+  padding: 12px 14px;
+  max-width: 260px;
+  pointer-events: none;
+  z-index: 500;
+  display: none;
+  box-shadow: 0 10px 40px rgba(0,0,0,.7);
+}
+.tip-name { font-family: 'Playfair Display', serif; font-size: 15px; margin-bottom: 3px; }
+.tip-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #666678; margin-bottom: 8px; }
+.tip-scale { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 10px; font-size: 10px; font-family: 'JetBrains Mono', monospace; margin-bottom: 7px; }
+.tip-reg { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #555568; line-height: 1.7; }
+.tip-breakdown { font-size: 10px; font-family: 'JetBrains Mono', monospace; margin-top: 7px; line-height: 1.8; }
 
-  /* ── TOOLTIP ── */
-  #tooltip {
-    position: fixed;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    max-width: 280px;
-    pointer-events: none;
-    z-index: 200;
-    display: none;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-  }
-  #tooltip .tt-name {
-    font-family: 'DM Serif Display', serif;
-    font-size: 16px;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-  #tooltip .tt-parent {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  #tooltip .tt-scale {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    margin-bottom: 8px;
-  }
-  #tooltip .tt-regions {
-    font-size: 10px;
-    color: var(--text-dim);
-    font-family: 'DM Mono', monospace;
-    line-height: 1.6;
-  }
-  #tooltip .tt-count {
-    font-size: 11px;
-    color: var(--text-dim);
-    font-family: 'DM Mono', monospace;
-    margin-top: 6px;
-  }
+/* ── SIDE PANEL ── */
+#side {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: 290px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  z-index: 200;
+  transform: translateX(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column;
+}
+#side.open { transform: translateX(0); }
+#side-head {
+  padding: 18px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+}
+#side-name { font-family: 'Playfair Display', serif; font-size: 17px; padding-right: 32px; line-height: 1.3; }
+#side-count { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #555568; margin-top: 4px; }
+#side-close {
+  position: absolute; top: 14px; right: 12px;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; color: #666678; font-size: 13px;
+}
+#side-close:hover { color: var(--text); }
+#side-body {
+  flex: 1; overflow-y: auto; padding: 10px 14px;
+}
+#side-body::-webkit-scrollbar { width: 3px; }
+#side-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.sg-head {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  padding: 10px 0 5px; margin-top: 4px;
+}
+.sb-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 8px; border-radius: 7px; margin-bottom: 2px;
+  cursor: default;
+  transition: background .12s;
+}
+.sb-row:hover { background: var(--bg3); }
+.sb-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.sb-name { font-size: 11px; flex: 1; color: var(--text); line-height: 1.4; }
+.sb-reg { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #444455; line-height: 1.5; }
 
-  /* ── SIDE PANEL ── */
-  #side-panel {
-    position: fixed;
-    right: 0; top: 0; bottom: 0;
-    width: 300px;
-    background: var(--panel);
-    border-left: 1px solid var(--border);
-    z-index: 100;
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  #side-panel.open { transform: translateX(0); }
+/* ── BOTTOM STATS ── */
+#statsbar {
+  position: fixed;
+  bottom: 14px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 7px 18px;
+  display: flex; gap: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #444455;
+  pointer-events: none; z-index: 80;
+}
+#statsbar b { color: var(--text); font-weight: 400; }
 
-  #panel-header {
-    padding: 20px 16px 12px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  #panel-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px;
-    color: var(--text);
-    margin-bottom: 3px;
-  }
-  #panel-subtitle {
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text-dim);
-  }
-  #panel-close {
-    position: absolute;
-    top: 16px; right: 16px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    width: 28px; height: 28px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    color: var(--text-dim);
-    font-size: 14px;
-  }
-  #panel-close:hover { color: var(--text); }
+/* ── ZOOM ── */
+#zooms {
+  position: fixed; bottom: 56px; right: 12px;
+  display: flex; flex-direction: column; gap: 3px; z-index: 80;
+}
+.zbtn {
+  width: 32px; height: 32px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 7px; color: #555568; font-size: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .12s;
+}
+.zbtn:hover { color: var(--text); background: var(--bg3); }
 
-  #panel-brands {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px 16px;
-  }
-  #panel-brands::-webkit-scrollbar { width: 4px; }
-  #panel-brands::-webkit-scrollbar-track { background: transparent; }
-  #panel-brands::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/* ── LIST VIEW ── */
+#list-view {
+  display: none;
+  flex: 1; overflow-y: auto;
+  padding: 14px;
+}
+#list-view.show { display: block; }
+#svg-wrap.hide { display: none; }
+.lop {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.lop-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px; cursor: pointer;
+  transition: background .12s;
+}
+.lop-head:hover { background: var(--bg3); }
+.lop-name { font-family: 'Playfair Display', serif; font-size: 13px; }
+.lop-ct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #444455; }
+.lop-body { display: none; border-top: 1px solid var(--border); padding: 8px 14px 10px; }
+.lop-body.open { display: block; }
+.lb-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,.025);
+  font-size: 11px;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.lb-n { flex: 1; color: var(--text); }
+.lb-r { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #404052; }
 
-  .brand-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    margin-bottom: 4px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .brand-item:hover { background: var(--bg3); }
-  .brand-item .bi-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .brand-item .bi-name {
-    font-size: 12px;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--text);
-    flex: 1;
-  }
-  .brand-item .bi-scale {
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text-muted);
-  }
-  .brand-item .bi-regions {
-    font-size: 9px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text-muted);
-  }
+/* ── LOADING ── */
+#loader {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; z-index: 999;
+}
+#loader h2 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--accent); }
+#loader p { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #444455; }
+.spin {
+  width: 28px; height: 28px;
+  border: 2px solid rgba(212,168,67,.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: rot .7s linear infinite;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
 
-  .scale-group-header {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    padding: 12px 10px 6px;
-  }
-
-  /* ── STATS BAR ── */
-  #statsbar {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 8px 20px;
-    display: flex;
-    gap: 24px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text-dim);
-    pointer-events: none;
-    z-index: 50;
-  }
-  #statsbar span { color: var(--text); }
-
-  /* ── ZOOM CONTROLS ── */
-  #zoom-controls {
-    position: fixed;
-    bottom: 70px;
-    right: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    z-index: 50;
-  }
-  .zoom-btn {
-    width: 36px; height: 36px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-dim);
-    font-size: 18px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-  }
-  .zoom-btn:hover { color: var(--text); background: var(--bg3); }
-
-  /* ── LIST VIEW ── */
-  #list-view {
-    display: none;
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-  }
-  #list-view.active { display: block; }
-  #svg-container.hidden { display: none; }
-
-  .list-operator {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 12px;
-    overflow: hidden;
-  }
-  .list-op-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .list-op-header:hover { background: var(--bg3); }
-  .list-op-name {
-    font-family: 'DM Serif Display', serif;
-    font-size: 14px;
-    color: var(--text);
-  }
-  .list-op-count {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  .list-op-brands {
-    display: none;
-    padding: 0 16px 12px;
-    border-top: 1px solid var(--border);
-  }
-  .list-op-brands.open { display: block; }
-  .list-brand-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 6px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    font-size: 12px;
-  }
-  .list-brand-row .lb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .list-brand-row .lb-name { flex: 1; color: var(--text); }
-  .list-brand-row .lb-scale { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); }
-  .list-brand-row .lb-regions { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); }
-
-  /* Mobile adjustments */
-  @media (max-width: 500px) {
-    #topbar { padding: 8px 10px; gap: 8px; }
-    #topbar h1 { font-size: 13px; }
-    .scale-pill { font-size: 10px; padding: 3px 8px; }
-    #side-panel { width: 100%; }
-    #statsbar { font-size: 10px; gap: 14px; padding: 6px 14px; }
-  }
-
-  /* Loading */
-  #loading {
-    position: fixed; inset: 0;
-    background: var(--bg);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    z-index: 999;
-    gap: 16px;
-  }
-  #loading h2 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 20px;
-    color: var(--accent);
-  }
-  #loading p {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--text-dim);
-  }
-  .spinner {
-    width: 32px; height: 32px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 480px) {
+  #topbar { gap: 6px; padding: 7px 10px; }
+  #logo { font-size: 12px; }
+  .spill { font-size: 9px; padding: 3px 7px; }
+  #side { width: 100%; }
+}
 </style>
 </head>
 <body>
 
-<div id="loading">
-  <div class="spinner"></div>
+<div id="loader">
+  <div class="spin"></div>
   <h2>Hotel Brand Universe</h2>
-  <p id="loading-msg">Loading 1,620 brands...</p>
+  <p id="loader-msg">Loading 1,620 brands…</p>
 </div>
 
-<!-- TOP BAR -->
+<!-- TOPBAR -->
 <div id="topbar">
-  <h1>🏨 Hotel Brand Universe</h1>
+  <div id="logo">⬡ Hotel Brand Universe</div>
 
   <div id="search-wrap">
-    <span class="search-icon">⌕</span>
-    <input id="search" type="text" placeholder="Search brand or operator..." autocomplete="off">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="search" type="text" placeholder="Search brand or operator…" autocomplete="off">
   </div>
 
   <div id="legend">
-    <div class="scale-pill active" data-scale="Luxury Chain" style="border-color: var(--luxury); background: rgba(240,192,96,0.08)">
-      <div class="scale-dot" style="background:var(--luxury)"></div>Luxury
-    </div>
-    <div class="scale-pill active" data-scale="Upper Upscale Chain" style="border-color: var(--upper-upscale); background: rgba(224,125,90,0.08)">
-      <div class="scale-dot" style="background:var(--upper-upscale)"></div>Upper Upscale
-    </div>
-    <div class="scale-pill active" data-scale="Upscale Chain" style="border-color: var(--upscale); background: rgba(126,200,160,0.08)">
-      <div class="scale-dot" style="background:var(--upscale)"></div>Upscale
-    </div>
-    <div class="scale-pill active" data-scale="Upper Midscale Chain" style="border-color: var(--upper-mid); background: rgba(90,168,216,0.08)">
-      <div class="scale-dot" style="background:var(--upper-mid)"></div>Upper Midscale
-    </div>
-    <div class="scale-pill active" data-scale="Midscale Chain" style="border-color: var(--midscale); background: rgba(144,128,216,0.08)">
-      <div class="scale-dot" style="background:var(--midscale)"></div>Midscale
-    </div>
-    <div class="scale-pill active" data-scale="Economy Chain" style="border-color: var(--economy); background: rgba(104,136,160,0.08)">
-      <div class="scale-dot" style="background:var(--economy)"></div>Economy
-    </div>
+    <div class="spill" data-s="Luxury Chain" style="border-color:var(--c-luxury);background:rgba(212,168,67,.07)"><div class="sdot" style="background:var(--c-luxury)"></div>Luxury</div>
+    <div class="spill" data-s="Upper Upscale Chain" style="border-color:var(--c-uu);background:rgba(201,107,68,.07)"><div class="sdot" style="background:var(--c-uu)"></div>Upper Upscale</div>
+    <div class="spill" data-s="Upscale Chain" style="border-color:var(--c-upscale);background:rgba(95,184,130,.07)"><div class="sdot" style="background:var(--c-upscale)"></div>Upscale</div>
+    <div class="spill" data-s="Upper Midscale Chain" style="border-color:var(--c-um);background:rgba(72,152,200,.07)"><div class="sdot" style="background:var(--c-um)"></div>Upper Mid</div>
+    <div class="spill" data-s="Midscale Chain" style="border-color:var(--c-mid);background:rgba(138,111,216,.07)"><div class="sdot" style="background:var(--c-mid)"></div>Midscale</div>
+    <div class="spill" data-s="Economy Chain" style="border-color:var(--c-economy);background:rgba(90,122,148,.07)"><div class="sdot" style="background:var(--c-economy)"></div>Economy</div>
   </div>
 
-  <select id="region-select">
-    <option value="">All Regions</option>
-    <option value="africa">Africa</option>
-    <option value="apac">APAC</option>
-    <option value="cs_america">C&S America</option>
-    <option value="europe">Europe</option>
-    <option value="middle_east">Middle East</option>
-    <option value="n_america_excl_us">N America Excl US</option>
-    <option value="united_states">United States</option>
-  </select>
-
-  <div id="view-toggle">
-    <button class="view-btn active" data-view="graph">Graph</button>
-    <button class="view-btn" data-view="list">List</button>
+  <div id="controls">
+    <select id="region-sel">
+      <option value="">All Regions</option>
+      <option value="Africa">Africa</option>
+      <option value="APAC">APAC</option>
+      <option value="C&S America">C&S America</option>
+      <option value="Europe">Europe</option>
+      <option value="Middle East">Middle East</option>
+      <option value="N America Excl US">N America Excl US</option>
+      <option value="United States">United States</option>
+    </select>
+    <div id="view-toggle">
+      <button class="vbtn on" data-v="graph">Graph</button>
+      <button class="vbtn" data-v="list">List</button>
+    </div>
   </div>
 </div>
 
-<!-- CANVAS -->
+<!-- GRAPH -->
 <div id="canvas">
-  <div id="svg-container">
-    <svg id="main-svg"></svg>
-  </div>
+  <div id="svg-wrap"><svg id="main-svg"></svg></div>
   <div id="list-view"></div>
 </div>
 
 <!-- TOOLTIP -->
-<div id="tooltip"></div>
+<div id="tip"></div>
 
 <!-- SIDE PANEL -->
-<div id="side-panel">
-  <div id="panel-header">
-    <div id="panel-title"></div>
-    <div id="panel-subtitle"></div>
-    <div id="panel-close" onclick="closePanel()">✕</div>
+<div id="side">
+  <div id="side-head">
+    <div id="side-name"></div>
+    <div id="side-count"></div>
+    <div id="side-close" onclick="closePanel()">✕</div>
   </div>
-  <div id="panel-brands"></div>
+  <div id="side-body"></div>
 </div>
 
-<!-- STATS BAR -->
+<!-- STATS -->
 <div id="statsbar">
-  <div>Brands: <span id="stat-brands">1,620</span></div>
-  <div>Operators: <span id="stat-ops">903</span></div>
-  <div>Showing: <span id="stat-showing">all</span></div>
+  <div>Brands <b id="s-brands">1620</b></div>
+  <div>Operators <b id="s-ops">903</b></div>
+  <div id="s-filter-wrap" style="display:none">Filter <b id="s-filter"></b></div>
 </div>
 
 <!-- ZOOM -->
-<div id="zoom-controls">
-  <button class="zoom-btn" id="zoom-in">+</button>
-  <button class="zoom-btn" id="zoom-fit">⊡</button>
-  <button class="zoom-btn" id="zoom-out">−</button>
+<div id="zooms">
+  <button class="zbtn" id="zin">+</button>
+  <button class="zbtn" id="zfit">⊡</button>
+  <button class="zbtn" id="zout">−</button>
 </div>
 
 <script>
-// ── CONSTANTS ──
-const SCALE_COLORS = {
-  'Luxury Chain': '#f0c060',
-  'Upper Upscale Chain': '#e07d5a',
-  'Upscale Chain': '#7ec8a0',
-  'Upper Midscale Chain': '#5aa8d8',
-  'Midscale Chain': '#9080d8',
-  'Economy Chain': '#6888a0'
+/* ─── CONSTANTS ─────────────────────────────────────── */
+const SCALES = ['Luxury Chain','Upper Upscale Chain','Upscale Chain','Upper Midscale Chain','Midscale Chain','Economy Chain'];
+const SCOL = {
+  'Luxury Chain':       '#d4a843',
+  'Upper Upscale Chain':'#c96b44',
+  'Upscale Chain':      '#5fb882',
+  'Upper Midscale Chain':'#4898c8',
+  'Midscale Chain':     '#8a6fd8',
+  'Economy Chain':      '#5a7a94'
 };
+const ZONE_ANGLES = {};  // filled after canvas size known
 
-const SCALE_ORDER = ['Luxury Chain','Upper Upscale Chain','Upscale Chain','Upper Midscale Chain','Midscale Chain','Economy Chain'];
-
-// State
+/* ─── STATE ─────────────────────────────────────────── */
 let allBrands = [];
-let activeScales = new Set(Object.keys(SCALE_COLORS));
-let activeRegion = '';
-let searchTerm = '';
-let selectedOperator = null;
+let activeSc = new Set(SCALES);
+let activeReg = '';
+let searchQ = '';
 let currentView = 'graph';
+let svgEl, gEl, zoomBeh, sim;
 
-// D3 zoom
-let svg, g, zoom, simulation;
-let nodeMap = {};
-
-// ── LOAD DATA ──
-async function init() {
-  document.getElementById('loading-msg').textContent = 'Loading brand data...';
-  const resp = await fetch('brands_data.json');
-  allBrands = await resp.json();
-  document.getElementById('loading-msg').textContent = 'Building graph...';
-  
-  // Short delay so message shows
-  setTimeout(() => {
-    buildGraph();
-    buildListView();
-    document.getElementById('loading').style.display = 'none';
-  }, 100);
+/* ─── BOOT ─────────────────────────────────────────── */
+async function boot() {
+  document.getElementById('loader-msg').textContent = 'Fetching brand data…';
+  allBrands = await fetch('brands_data.json').then(r => r.json());
+  document.getElementById('loader-msg').textContent = 'Building clustered graph…';
+  await new Promise(r => setTimeout(r, 60));
+  buildGraph();
+  buildList();
+  document.getElementById('loader').style.display = 'none';
 }
 
-// ── FILTER BRANDS ──
-function getFiltered() {
+/* ─── FILTER ─────────────────────────────────────────── */
+function filtered() {
   return allBrands.filter(b => {
-    if (!activeScales.has(b.chain_scale)) return false;
-    if (activeRegion && !b.regions.includes(regionLabel(activeRegion))) return false;
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
+    if (!activeSc.has(b.chain_scale)) return false;
+    if (activeReg && !b.regions.includes(activeReg)) return false;
+    if (searchQ) {
+      const q = searchQ.toLowerCase();
       return b.brand.toLowerCase().includes(q) || b.parent.toLowerCase().includes(q);
     }
     return true;
   });
 }
 
-function regionLabel(key) {
-  const m = {
-    'africa': 'Africa', 'apac': 'APAC', 'cs_america': 'C&S America',
-    'europe': 'Europe', 'middle_east': 'Middle East',
-    'n_america_excl_us': 'N America Excl US', 'united_states': 'United States'
-  };
-  return m[key] || key;
+/* dominant scale for an operator */
+function dominantScale(brands) {
+  const cnt = {};
+  brands.forEach(b => cnt[b.chain_scale] = (cnt[b.chain_scale]||0)+1);
+  return SCALES.reduce((a,s) => (cnt[s]||0) > (cnt[a]||0) ? s : a, SCALES[0]);
 }
 
-// ── BUILD GRAPH ──
+/* ─── BUILD GRAPH ─────────────────────────────────────── */
 function buildGraph() {
-  const filtered = getFiltered();
+  const data = filtered();
+  const byParent = d3.group(data, d => d.parent);
 
-  // Group by parent, only include parents with at least 1 brand
-  const byParent = d3.group(filtered, d => d.parent);
+  const W = document.getElementById('svg-wrap').clientWidth;
+  const H = document.getElementById('svg-wrap').clientHeight;
+  const cx = W / 2, cy = H / 2;
 
-  // Build nodes & links
-  const nodes = [];
-  const links = [];
-  nodeMap = {};
+  /* ── zone layout: 6 sectors arranged in a circle ── */
+  // Assign each scale its angle slice (60° each, arranged so Luxury is at top)
+  // Order: Luxury(top), Upper Upscale(top-right), Upscale(bottom-right),
+  //        Economy(bottom), Midscale(bottom-left), Upper Midscale(top-left)
+  const sectorOrder = ['Luxury Chain','Upper Upscale Chain','Upscale Chain','Economy Chain','Midscale Chain','Upper Midscale Chain'];
+  const sectorAngles = {};
+  sectorOrder.forEach((s, i) => {
+    sectorAngles[s] = -Math.PI/2 + (i * Math.PI * 2 / 6);
+  });
 
-  // Operator nodes
+  /* ring radii */
+  const MIN_DIM = Math.min(W, H);
+  const R_INNER = MIN_DIM * 0.08;   // central hub radius
+  const R_OP    = MIN_DIM * 0.32;   // operator ring
+  const R_BR    = MIN_DIM * 0.46;   // brand outer boundary
+
+  /* build operator nodes with positions */
+  const opNodes = [];
+  const brNodes = [];
+  const edges   = [];
+
   byParent.forEach((brands, parent) => {
-    const opNode = {
-      id: 'op_' + parent,
-      type: 'operator',
-      name: parent,
-      brandCount: brands.length,
-      brands: brands
-    };
-    nodes.push(opNode);
-    nodeMap[opNode.id] = opNode;
+    const dom = dominantScale(brands);
+    const baseAngle = sectorAngles[dom];
+    opNodes.push({ id:'op_'+parent, type:'op', name:parent, brands, dom, baseAngle,
+      x: cx + R_OP * Math.cos(baseAngle), y: cy + R_OP * Math.sin(baseAngle) });
+  });
 
-    brands.forEach(b => {
-      const bNode = {
-        id: 'br_' + b.brand + '_' + parent,
-        type: 'brand',
-        name: b.brand,
-        parent: parent,
-        chain_scale: b.chain_scale,
-        scale_id: b.scale_id,
-        regions: b.regions
-      };
-      nodes.push(bNode);
-      nodeMap[bNode.id] = bNode;
-      links.push({ source: opNode.id, target: bNode.id, scale: b.chain_scale });
+  /* jitter operators within their sector so they don't stack */
+  // Group ops by dominant scale
+  const byDom = d3.group(opNodes, d => d.dom);
+  byDom.forEach((ops, scale) => {
+    const base = sectorAngles[scale];
+    const spread = Math.PI / 3 * 0.72; // 72% of 60°
+    if (ops.length === 1) {
+      ops[0].tx = cx + R_OP * Math.cos(base);
+      ops[0].ty = cy + R_OP * Math.sin(base);
+    } else {
+      // Sort by brand count desc so big operators anchor the middle
+      ops.sort((a,b) => b.brands.length - a.brands.length);
+      ops.forEach((op, i) => {
+        const t = ops.length === 1 ? 0 : (i / (ops.length - 1) - 0.5) * spread;
+        const angle = base + t;
+        // vary radius by position in group for more natural distribution
+        const r = R_OP * (0.85 + 0.3 * Math.random());
+        op.tx = cx + r * Math.cos(angle);
+        op.ty = cy + r * Math.sin(angle);
+      });
+    }
+    ops.forEach(op => { op.x = op.tx; op.y = op.ty; });
+  });
+
+  /* build brand nodes */
+  opNodes.forEach(op => {
+    op.brands.forEach(b => {
+      const id = 'br_' + op.name + '_' + b.brand;
+      const brNode = { id, type:'br', name:b.name||b.brand, brand:b.brand, parent:op.name,
+        chain_scale:b.chain_scale, regions:b.regions, opNode:op,
+        x: op.x + (Math.random()-.5)*30, y: op.y + (Math.random()-.5)*30 };
+      brNodes.push(brNode);
+      edges.push({ source: op.id, target: id, scale: b.chain_scale });
     });
   });
 
-  updateStats(filtered.length, byParent.size);
+  const nodes = [...opNodes, ...brNodes];
+  const nodeById = Object.fromEntries(nodes.map(n => [n.id, n]));
 
-  // Build SVG
-  const container = document.getElementById('svg-container');
-  const W = container.clientWidth;
-  const H = container.clientHeight;
-
+  /* ── D3 SVG setup ── */
   d3.select('#main-svg').selectAll('*').remove();
+  svgEl = d3.select('#main-svg');
 
-  svg = d3.select('#main-svg');
-  zoom = d3.zoom()
-    .scaleExtent([0.05, 4])
-    .on('zoom', (event) => { g.attr('transform', event.transform); });
+  zoomBeh = d3.zoom().scaleExtent([.04, 5])
+    .on('zoom', e => gEl.attr('transform', e.transform));
+  svgEl.call(zoomBeh);
+  svgEl.on('mousedown', () => svgEl.classed('drag', true));
+  svgEl.on('mouseup mouseleave', () => svgEl.classed('drag', false));
+  svgEl.on('click.bg', () => closePanel());
 
-  svg.call(zoom);
-  svg.on('mousedown', () => svg.classed('dragging', true));
-  svg.on('mouseup mouseleave', () => svg.classed('dragging', false));
+  gEl = svgEl.append('g');
 
-  g = svg.append('g');
+  /* ── ZONE BACKGROUND WEDGES ── */
+  const arc = d3.arc();
+  const zoneG = gEl.append('g').attr('class','zones');
+  sectorOrder.forEach(scale => {
+    if (!activeSc.has(scale)) return;
+    const midAngle = sectorAngles[scale];
+    const startAngle = midAngle - Math.PI/6;
+    const endAngle   = midAngle + Math.PI/6;
+    const col = SCOL[scale];
 
-  // Defs: glow filter
-  const defs = svg.append('defs');
-  Object.entries(SCALE_COLORS).forEach(([scale, color]) => {
-    const fid = 'glow-' + scale.replace(/ /g,'_');
-    const filter = defs.append('filter').attr('id', fid);
-    filter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'blur');
-    const merge = filter.append('feMerge');
-    merge.append('feMergeNode').attr('in', 'blur');
-    merge.append('feMergeNode').attr('in', 'SourceGraphic');
+    // wedge fill
+    zoneG.append('path')
+      .attr('class','zone-bg')
+      .attr('d', arc({ innerRadius: R_INNER, outerRadius: R_BR*1.25, startAngle, endAngle }))
+      .attr('transform', `translate(${cx},${cy})`)
+      .attr('fill', col);
+
+    // divider line at edges
+    [startAngle, endAngle].forEach(a => {
+      zoneG.append('line')
+        .attr('class','zone-divider')
+        .attr('x1', cx + R_INNER * Math.cos(a))
+        .attr('y1', cy + R_INNER * Math.sin(a))
+        .attr('x2', cx + R_BR * 1.22 * Math.cos(a))
+        .attr('y2', cy + R_BR * 1.22 * Math.sin(a))
+        .attr('stroke', col)
+        .attr('stroke-width', 1);
+    });
+
+    // zone label on arc
+    const labelR = R_BR * 1.12;
+    const lx = cx + labelR * Math.cos(midAngle);
+    const ly = cy + labelR * Math.sin(midAngle);
+    zoneG.append('text')
+      .attr('class','zone-label')
+      .attr('x', lx).attr('y', ly)
+      .attr('text-anchor','middle').attr('dominant-baseline','middle')
+      .attr('fill', col).attr('font-size', Math.max(8, MIN_DIM * 0.018))
+      .attr('opacity', .45)
+      .text(scale.replace(' Chain','').toUpperCase());
   });
 
-  // Simulation
-  // Operator radius based on brand count
-  const opRadiusScale = d3.scaleSqrt().domain([1, 43]).range([10, 40]);
+  /* ── EDGES ── */
+  const edgeG = gEl.append('g').attr('class','edges');
+  const edgeSel = edgeG.selectAll('.edge')
+    .data(edges).enter().append('line')
+    .attr('class','edge')
+    .attr('stroke', d => SCOL[d.scale] || '#aaa')
+    .attr('stroke-width', .6)
+    .attr('opacity', .12);
 
-  simulation = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).id(d => d.id)
-      .distance(d => {
-        const opNode = nodeMap[typeof d.source === 'object' ? d.source.id : d.source];
-        return opNode ? opRadiusScale(opNode.brandCount) + 30 : 60;
-      })
-      .strength(0.8))
-    .force('charge', d3.forceManyBody()
-      .strength(d => d.type === 'operator' ? -300 : -20))
-    .force('center', d3.forceCenter(W / 2, H / 2))
-    .force('collision', d3.forceCollide()
-      .radius(d => d.type === 'operator' ? opRadiusScale(d.brandCount) + 5 : 8))
-    .alphaDecay(0.02);
+  /* ── BRAND NODES ── */
+  const brG = gEl.append('g').attr('class','br-nodes');
+  const brSel = brG.selectAll('.br-g')
+    .data(brNodes).enter().append('g').attr('class','br-g');
 
-  // Draw links
-  const link = g.append('g').attr('class', 'links')
-    .selectAll('.link')
-    .data(links)
-    .enter().append('line')
-    .attr('class', 'link')
-    .style('stroke', d => SCALE_COLORS[d.scale] || '#aaa');
+  brSel.append('circle')
+    .attr('class','br-circle')
+    .attr('r', 4.5)
+    .attr('fill', d => SCOL[d.chain_scale] || '#aaa')
+    .attr('fill-opacity', .55)
+    .attr('stroke', d => SCOL[d.chain_scale] || '#aaa')
+    .attr('stroke-width', .5)
+    .attr('stroke-opacity', .7)
+    .on('mouseover', showTip)
+    .on('mousemove', moveTip)
+    .on('mouseout', hideTip)
+    .on('click', (evt, d) => { evt.stopPropagation(); /* select operator */ openPanel(d.opNode); });
 
-  // Draw operator nodes
-  const opNode = g.append('g').attr('class', 'op-nodes')
-    .selectAll('.operator-node')
-    .data(nodes.filter(d => d.type === 'operator'))
-    .enter().append('g')
-    .attr('class', 'operator-node')
+  brSel.append('text')
+    .attr('class','br-label')
+    .attr('dy','-7px').attr('text-anchor','middle')
+    .attr('fill','rgba(220,220,240,.55)').attr('font-size', 8)
+    .attr('opacity', 0)
+    .text(d => d.brand);
+
+  /* ── OPERATOR NODES ── */
+  const opRadR = d3.scaleSqrt().domain([1,43]).range([9,36]);
+  const opG = gEl.append('g').attr('class','op-nodes');
+  const opSel = opG.selectAll('.op-g')
+    .data(opNodes).enter().append('g').attr('class','op-g')
     .call(d3.drag()
-      .on('start', dragstart)
-      .on('drag', dragged)
-      .on('end', dragend))
-    .on('click', (event, d) => { event.stopPropagation(); openPanel(d); })
-    .on('mouseover', (event, d) => showTooltip(event, d))
-    .on('mousemove', (event, d) => moveTooltip(event))
-    .on('mouseout', hideTooltip);
+      .on('start', (e,d) => { if(!e.active) sim.alphaTarget(.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
+      .on('end',   (e,d) => { if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; }))
+    .on('click', (evt, d) => { evt.stopPropagation(); openPanel(d); })
+    .on('mouseover', showTip)
+    .on('mousemove', moveTip)
+    .on('mouseout', hideTip);
 
-  opNode.append('circle')
-    .attr('r', d => opRadiusScale(d.brandCount))
-    .style('fill', d => {
-      // Color by dominant scale in this operator
-      const scaleCounts = d3.rollup(d.brands, v => v.length, b => b.chain_scale);
-      const dominant = [...scaleCounts.entries()].sort((a,b) => b[1]-a[1])[0][0];
-      return SCALE_COLORS[dominant] || '#aaa';
-    })
-    .style('fill-opacity', 0.15)
-    .style('stroke', d => {
-      const scaleCounts = d3.rollup(d.brands, v => v.length, b => b.chain_scale);
-      const dominant = [...scaleCounts.entries()].sort((a,b) => b[1]-a[1])[0][0];
-      return SCALE_COLORS[dominant] || '#aaa';
-    })
-    .style('stroke-width', 1.5)
-    .style('stroke-opacity', 0.7);
+  opSel.append('circle')
+    .attr('class','op-circle')
+    .attr('r', d => opRadR(d.brands.length))
+    .attr('fill', d => SCOL[d.dom])
+    .attr('fill-opacity', .12)
+    .attr('stroke', d => SCOL[d.dom])
+    .attr('stroke-width', 1.2)
+    .attr('stroke-opacity', .55);
 
-  opNode.append('text')
-    .attr('text-anchor', 'middle')
-    .attr('dy', '0.35em')
-    .style('font-size', d => Math.min(11, opRadiusScale(d.brandCount) * 0.55) + 'px')
-    .style('font-weight', '500')
+  opSel.append('text')
+    .attr('class','op-label')
+    .attr('text-anchor','middle').attr('dominant-baseline','middle')
+    .attr('fill', d => SCOL[d.dom])
+    .attr('fill-opacity', .85)
+    .attr('font-size', d => Math.min(11, opRadR(d.brands.length) * .52))
+    .attr('font-weight', '500')
     .text(d => {
-      const maxLen = Math.floor(opRadiusScale(d.brandCount) * 2.5);
-      return d.name.length > maxLen ? d.name.slice(0, maxLen - 1) + '…' : d.name;
+      const maxC = Math.floor(opRadR(d.brands.length) * 2.2);
+      return d.name.length > maxC ? d.name.slice(0, maxC-1) + '…' : d.name;
     });
 
-  // Draw brand nodes
-  const brNode = g.append('g').attr('class', 'brand-nodes')
-    .selectAll('.brand-node')
-    .data(nodes.filter(d => d.type === 'brand'))
-    .enter().append('g')
-    .attr('class', 'brand-node')
-    .on('mouseover', (event, d) => showTooltip(event, d))
-    .on('mousemove', (event, d) => moveTooltip(event))
-    .on('mouseout', hideTooltip);
+  /* ── FORCE SIMULATION ── */
+  // Keep operators in their zones with a custom force
+  const zoneForce = alpha => {
+    opNodes.forEach(op => {
+      const base = sectorAngles[op.dom];
+      const target_x = cx + R_OP * Math.cos(base);
+      const target_y = cy + R_OP * Math.sin(base);
+      // angular constraint: pull toward sector angle
+      const dx = op.x - cx, dy = op.y - cy;
+      const angle = Math.atan2(dy, dx);
+      const angleDiff = base - angle;
+      const normDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
+      // gentle angular pull
+      const strength = alpha * 0.04;
+      const r = Math.sqrt(dx*dx + dy*dy) || 1;
+      op.vx += normDiff * r * strength * .3;
+      op.vy += normDiff * r * strength * .3;
+      // radial pull (keep on ring)
+      const rDiff = R_OP - r;
+      op.vx += (dx/r) * rDiff * alpha * 0.03;
+      op.vy += (dy/r) * rDiff * alpha * 0.03;
+    });
+  };
 
-  brNode.append('circle')
-    .attr('r', 5)
-    .style('fill', d => SCALE_COLORS[d.chain_scale] || '#aaa')
-    .style('fill-opacity', 0.6)
-    .style('stroke', d => SCALE_COLORS[d.chain_scale] || '#aaa')
-    .style('stroke-width', 0.5)
-    .style('stroke-opacity', 0.8);
+  sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(edges).id(d => d.id)
+      .distance(d => {
+        const src = typeof d.source === 'object' ? d.source : nodeById[d.source];
+        return src ? opRadR(src.brands ? src.brands.length : 1) + 22 : 50;
+      }).strength(.6))
+    .force('charge', d3.forceManyBody()
+      .strength(d => d.type === 'op' ? -180 : -12)
+      .distanceMax(300))
+    .force('collision', d3.forceCollide()
+      .radius(d => d.type === 'op' ? opRadR(d.brands.length) + 4 : 6))
+    .force('zone', zoneForce)
+    .alphaDecay(.018)
+    .on('tick', () => {
+      edgeSel
+        .attr('x1', d => (typeof d.source === 'object' ? d.source : nodeById[d.source]).x)
+        .attr('y1', d => (typeof d.source === 'object' ? d.source : nodeById[d.source]).y)
+        .attr('x2', d => (typeof d.target === 'object' ? d.target : nodeById[d.target]).x)
+        .attr('y2', d => (typeof d.target === 'object' ? d.target : nodeById[d.target]).y);
+      brSel.attr('transform', d => `translate(${d.x},${d.y})`);
+      opSel.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
 
-  // Labels only shown at zoom >= 1.5 (via CSS opacity trick using zoom level)
-  brNode.append('text')
-    .attr('dy', '-8px')
-    .attr('text-anchor', 'middle')
-    .style('opacity', 0)
-    .attr('class', 'brand-label')
-    .text(d => d.name);
-
-  // Track zoom for brand label visibility
-  zoom.on('zoom.labels', (event) => {
-    const k = event.transform.k;
-    g.selectAll('.brand-label').style('opacity', k > 1.8 ? Math.min(1, (k - 1.8) * 2) : 0);
+  // Zoom-level brand labels
+  zoomBeh.on('zoom.labels', e => {
+    const k = e.transform.k;
+    gEl.selectAll('.br-label').attr('opacity', k > 2 ? Math.min(1, (k-2)*1.5) : 0);
   });
 
-  // Tick
-  simulation.on('tick', () => {
-    link
-      .attr('x1', d => d.source.x)
-      .attr('y1', d => d.source.y)
-      .attr('x2', d => d.target.x)
-      .attr('y2', d => d.target.y);
-    opNode.attr('transform', d => `translate(${d.x},${d.y})`);
-    brNode.attr('transform', d => `translate(${d.x},${d.y})`);
-  });
+  // Initial fit after sim settles
+  sim.on('end', fitView);
+  setTimeout(fitView, 2000);
 
-  // Click background to close panel
-  svg.on('click.bg', () => closePanel());
-
-  // Handle search highlight
-  applySearch();
+  updateStats(data.length, byParent.size);
+  storeNodeData(opNodes);
 }
 
-function dragstart(event, d) {
-  if (!event.active) simulation.alphaTarget(0.3).restart();
-  d.fx = d.x; d.fy = d.y;
-}
-function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
-function dragend(event, d) {
-  if (!event.active) simulation.alphaTarget(0);
-  d.fx = null; d.fy = null;
+/* keep reference for highlight */
+let _opNodes = [];
+function storeNodeData(ops) { _opNodes = ops; }
+
+/* ─── FIT VIEW ─────────────────────────────────────────── */
+function fitView() {
+  if (!svgEl || !gEl) return;
+  const wrap = document.getElementById('svg-wrap');
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  try {
+    const b = gEl.node().getBBox();
+    if (!b.width || !b.height) return;
+    const pad = 60;
+    const sc = Math.min(.95*(W/(b.width+pad*2)), .95*(H/(b.height+pad*2)), 2);
+    const tx = W/2 - sc*(b.x + b.width/2);
+    const ty = H/2 - sc*(b.y + b.height/2);
+    svgEl.transition().duration(700)
+      .call(zoomBeh.transform, d3.zoomIdentity.translate(tx,ty).scale(sc));
+  } catch(e) {}
 }
 
-// ── TOOLTIP ──
-function showTooltip(event, d) {
-  const tt = document.getElementById('tooltip');
-  if (d.type === 'operator') {
-    const scaleBreakdown = d3.rollup(d.brands, v => v.length, b => b.chain_scale);
-    const scaleLines = SCALE_ORDER
-      .filter(s => scaleBreakdown.has(s))
-      .map(s => `<span style="color:${SCALE_COLORS[s]}">${s.replace(' Chain','')}: ${scaleBreakdown.get(s)}</span>`)
-      .join(' · ');
-    tt.innerHTML = `
-      <div class="tt-name">${d.name}</div>
-      <div class="tt-count">${d.brandCount} brand${d.brandCount > 1 ? 's' : ''}</div>
-      <div class="tt-regions" style="margin-top:8px">${scaleLines}</div>
-    `;
+/* ─── TOOLTIP ─────────────────────────────────────────── */
+function showTip(evt, d) {
+  const tip = document.getElementById('tip');
+  if (d.type === 'op') {
+    const breakdown = d3.rollup(d.brands, v => v.length, b => b.chain_scale);
+    const lines = SCALES.filter(s => breakdown.has(s))
+      .map(s => `<span style="color:${SCOL[s]}">${s.replace(' Chain','')}: ${breakdown.get(s)}</span>`).join(' · ');
+    tip.innerHTML = `<div class="tip-name">${d.name}</div>
+      <div class="tip-sub">${d.brands.length} brands · ${d.dom.replace(' Chain','')}-focused</div>
+      <div class="tip-breakdown">${lines}</div>`;
   } else {
-    const color = SCALE_COLORS[d.chain_scale] || '#aaa';
-    tt.innerHTML = `
-      <div class="tt-name">${d.name}</div>
-      <div class="tt-parent">by ${d.parent}</div>
-      <div class="tt-scale" style="background:${color}22; color:${color}; border: 1px solid ${color}44">
-        <div style="width:6px;height:6px;border-radius:50%;background:${color}"></div>
-        ${d.chain_scale}
+    const col = SCOL[d.chain_scale];
+    tip.innerHTML = `<div class="tip-name">${d.brand}</div>
+      <div class="tip-sub">by ${d.parent}</div>
+      <div class="tip-scale" style="background:${col}18;color:${col};border:1px solid ${col}33">
+        <div style="width:6px;height:6px;border-radius:50%;background:${col}"></div>${d.chain_scale}
       </div>
-      <div class="tt-regions">${d.regions.join(' · ') || 'No region data'}</div>
-    `;
+      <div class="tip-reg">${d.regions.join(' · ') || 'No region data'}</div>`;
   }
-  tt.style.display = 'block';
-  moveTooltip(event);
+  tip.style.display = 'block';
+  moveTip(evt);
 }
-
-function moveTooltip(event) {
-  const tt = document.getElementById('tooltip');
-  const x = event.clientX, y = event.clientY;
-  const w = tt.offsetWidth, h = tt.offsetHeight;
+function moveTip(evt) {
+  const tip = document.getElementById('tip');
+  const x = evt.clientX, y = evt.clientY;
   const vw = window.innerWidth, vh = window.innerHeight;
-  tt.style.left = Math.min(x + 12, vw - w - 8) + 'px';
-  tt.style.top = Math.min(y + 12, vh - h - 8) + 'px';
+  tip.style.left = Math.min(x+14, vw - tip.offsetWidth - 8) + 'px';
+  tip.style.top  = Math.min(y+14, vh - tip.offsetHeight - 8) + 'px';
 }
+function hideTip() { document.getElementById('tip').style.display = 'none'; }
 
-function hideTooltip() {
-  document.getElementById('tooltip').style.display = 'none';
-}
+/* ─── PANEL ─────────────────────────────────────────── */
+function openPanel(op) {
+  document.getElementById('side-name').textContent = op.name;
+  document.getElementById('side-count').textContent = op.brands.length + ' brand' + (op.brands.length>1?'s':'');
+  const body = document.getElementById('side-body');
+  body.innerHTML = '';
 
-// ── SIDE PANEL ──
-function openPanel(opData) {
-  const panel = document.getElementById('side-panel');
-  document.getElementById('panel-title').textContent = opData.name;
-  document.getElementById('panel-subtitle').textContent = `${opData.brandCount} brand${opData.brandCount > 1 ? 's' : ''}`;
+  const grouped = d3.group(op.brands, b => b.chain_scale);
+  SCALES.forEach(sc => {
+    if (!grouped.has(sc)) return;
+    const col = SCOL[sc];
+    const gh = document.createElement('div');
+    gh.className = 'sg-head'; gh.style.color = col;
+    gh.textContent = sc.replace(' Chain','');
+    body.appendChild(gh);
 
-  const container = document.getElementById('panel-brands');
-  container.innerHTML = '';
-
-  // Group brands by scale
-  const grouped = d3.group(opData.brands, b => b.chain_scale);
-  SCALE_ORDER.forEach(scale => {
-    if (!grouped.has(scale)) return;
-    const brands = grouped.get(scale);
-    const color = SCALE_COLORS[scale];
-    const header = document.createElement('div');
-    header.className = 'scale-group-header';
-    header.style.color = color;
-    header.textContent = scale.replace(' Chain', '');
-    container.appendChild(header);
-
-    brands.sort((a,b) => a.brand.localeCompare(b.brand)).forEach(brand => {
-      const item = document.createElement('div');
-      item.className = 'brand-item';
-      item.innerHTML = `
-        <div class="bi-dot" style="background:${color}"></div>
-        <div class="bi-name">${brand.brand}</div>
-        <div class="bi-regions">${brand.regions.slice(0,3).join(', ')}</div>
-      `;
-      container.appendChild(item);
+    grouped.get(sc).sort((a,b)=>a.brand.localeCompare(b.brand)).forEach(b => {
+      const row = document.createElement('div');
+      row.className = 'sb-row';
+      row.innerHTML = `<div class="sb-dot" style="background:${col}"></div>
+        <div>
+          <div class="sb-name">${b.brand}</div>
+          <div class="sb-reg">${b.regions.join(', ')||'—'}</div>
+        </div>`;
+      body.appendChild(row);
     });
   });
 
-  panel.classList.add('open');
-  selectedOperator = opData.name;
-
-  // Highlight in graph
-  highlightOperator(opData.name);
+  document.getElementById('side').classList.add('open');
+  highlightOp(op.name);
 }
 
 function closePanel() {
-  document.getElementById('side-panel').classList.remove('open');
-  selectedOperator = null;
+  document.getElementById('side').classList.remove('open');
   clearHighlight();
 }
 
-function highlightOperator(opName) {
-  if (!g) return;
-  g.selectAll('.operator-node circle')
-    .style('fill-opacity', d => d.name === opName ? 0.4 : 0.1)
-    .style('stroke-opacity', d => d.name === opName ? 1 : 0.3);
-
-  g.selectAll('.brand-node circle')
-    .style('fill-opacity', d => d.parent === opName ? 0.9 : 0.15)
-    .style('stroke-opacity', d => d.parent === opName ? 1 : 0.2);
-
-  g.selectAll('.link')
-    .classed('highlighted', d => {
-      const src = typeof d.source === 'object' ? d.source : nodeMap[d.source];
-      return src && src.name === opName;
+function highlightOp(name) {
+  if (!gEl) return;
+  gEl.selectAll('.op-circle')
+    .attr('fill-opacity', d => d.name===name ? .35 : .05)
+    .attr('stroke-opacity', d => d.name===name ? 1 : .2);
+  gEl.selectAll('.br-circle')
+    .attr('fill-opacity', d => d.parent===name ? .9 : .1)
+    .attr('stroke-opacity', d => d.parent===name ? 1 : .1);
+  gEl.selectAll('.edge')
+    .attr('opacity', d => {
+      const src = typeof d.source==='object' ? d.source : null;
+      return (src && src.name===name) ? .7 : .04;
+    })
+    .attr('stroke-width', d => {
+      const src = typeof d.source==='object' ? d.source : null;
+      return (src && src.name===name) ? 1.4 : .6;
     });
 }
 
 function clearHighlight() {
-  if (!g) return;
-  g.selectAll('.operator-node circle')
-    .style('fill-opacity', 0.15)
-    .style('stroke-opacity', 0.7);
-  g.selectAll('.brand-node circle')
-    .style('fill-opacity', 0.6)
-    .style('stroke-opacity', 0.8);
-  g.selectAll('.link').classed('highlighted', false);
+  if (!gEl) return;
+  gEl.selectAll('.op-circle').attr('fill-opacity',.12).attr('stroke-opacity',.55);
+  gEl.selectAll('.br-circle').attr('fill-opacity',.55).attr('stroke-opacity',.7);
+  gEl.selectAll('.edge').attr('opacity',.12).attr('stroke-width',.6);
 }
 
-// ── SEARCH HIGHLIGHT ──
 function applySearch() {
-  if (!g) return;
-  if (!searchTerm) { clearHighlight(); return; }
-  const q = searchTerm.toLowerCase();
-
-  g.selectAll('.operator-node circle')
-    .style('fill-opacity', d => d.name.toLowerCase().includes(q) ? 0.4 : 0.05)
-    .style('stroke-opacity', d => d.name.toLowerCase().includes(q) ? 1 : 0.15);
-
-  g.selectAll('.brand-node circle')
-    .style('fill-opacity', d =>
-      d.name.toLowerCase().includes(q) || d.parent.toLowerCase().includes(q) ? 0.9 : 0.1)
-    .style('stroke-opacity', d =>
-      d.name.toLowerCase().includes(q) || d.parent.toLowerCase().includes(q) ? 1 : 0.1);
+  if (!gEl) return;
+  if (!searchQ) { clearHighlight(); return; }
+  const q = searchQ.toLowerCase();
+  gEl.selectAll('.op-circle')
+    .attr('fill-opacity', d => d.name.toLowerCase().includes(q) ? .35 : .04)
+    .attr('stroke-opacity', d => d.name.toLowerCase().includes(q) ? 1 : .15);
+  gEl.selectAll('.br-circle')
+    .attr('fill-opacity', d => (d.brand.toLowerCase().includes(q)||d.parent.toLowerCase().includes(q)) ? .9 : .08)
+    .attr('stroke-opacity', d => (d.brand.toLowerCase().includes(q)||d.parent.toLowerCase().includes(q)) ? 1 : .08);
 }
 
-// ── LIST VIEW ──
-function buildListView() {
-  const filtered = getFiltered();
-  const byParent = d3.group(filtered, d => d.parent);
-  const listEl = document.getElementById('list-view');
-  listEl.innerHTML = '';
-
-  // Sort by brand count desc
-  const sorted = [...byParent.entries()].sort((a,b) => b[1].length - a[1].length);
-
-  sorted.forEach(([parent, brands]) => {
-    const div = document.createElement('div');
-    div.className = 'list-operator';
-
-    const header = document.createElement('div');
-    header.className = 'list-op-header';
-    header.innerHTML = `
-      <div class="list-op-name">${parent}</div>
-      <div class="list-op-count">${brands.length} brand${brands.length > 1 ? 's' : ''} ▾</div>
-    `;
-
-    const brandsDiv = document.createElement('div');
-    brandsDiv.className = 'list-op-brands';
-
-    const grouped = d3.group(brands, b => b.chain_scale);
-    SCALE_ORDER.forEach(scale => {
-      if (!grouped.has(scale)) return;
-      const color = SCALE_COLORS[scale];
-      const gh = document.createElement('div');
-      gh.style.cssText = `font-family:'DM Mono',monospace;font-size:10px;color:${color};padding:8px 0 4px;text-transform:uppercase;letter-spacing:0.1em`;
-      gh.textContent = scale.replace(' Chain', '');
-      brandsDiv.appendChild(gh);
-
-      grouped.get(scale).sort((a,b) => a.brand.localeCompare(b.brand)).forEach(b => {
-        const row = document.createElement('div');
-        row.className = 'list-brand-row';
-        row.innerHTML = `
-          <div class="lb-dot" style="background:${color}"></div>
-          <div class="lb-name">${b.brand}</div>
-          <div class="lb-regions">${b.regions.join(', ') || '—'}</div>
-        `;
-        brandsDiv.appendChild(row);
+/* ─── LIST VIEW ─────────────────────────────────────────── */
+function buildList() {
+  const data = filtered();
+  const byP = d3.group(data, d => d.parent);
+  const list = document.getElementById('list-view');
+  list.innerHTML = '';
+  [...byP.entries()]
+    .sort((a,b) => b[1].length - a[1].length)
+    .forEach(([parent, brands]) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'lop';
+      const head = document.createElement('div');
+      head.className = 'lop-head';
+      head.innerHTML = `<div class="lop-name">${parent}</div><div class="lop-ct">${brands.length} brands ▾</div>`;
+      const body = document.createElement('div');
+      body.className = 'lop-body';
+      const grouped = d3.group(brands, b => b.chain_scale);
+      SCALES.forEach(sc => {
+        if (!grouped.has(sc)) return;
+        const col = SCOL[sc];
+        const gh = document.createElement('div');
+        gh.style.cssText = `font-family:'JetBrains Mono',monospace;font-size:9px;color:${col};padding:8px 0 3px;text-transform:uppercase;letter-spacing:.1em`;
+        gh.textContent = sc.replace(' Chain','');
+        body.appendChild(gh);
+        grouped.get(sc).sort((a,b)=>a.brand.localeCompare(b.brand)).forEach(b => {
+          const row = document.createElement('div');
+          row.className = 'lb-row';
+          row.innerHTML = `<div class="lb-dot" style="background:${col}"></div>
+            <div class="lb-n">${b.brand}</div>
+            <div class="lb-r">${b.regions.join(', ')||'—'}</div>`;
+          body.appendChild(row);
+        });
       });
+      head.addEventListener('click', () => body.classList.toggle('open'));
+      wrap.append(head, body);
+      list.appendChild(wrap);
     });
-
-    header.addEventListener('click', () => brandsDiv.classList.toggle('open'));
-    div.appendChild(header);
-    div.appendChild(brandsDiv);
-    listEl.appendChild(div);
-  });
 }
 
-// ── STATS ──
-function updateStats(brandCount, opCount) {
-  document.getElementById('stat-brands').textContent = brandCount.toLocaleString();
-  document.getElementById('stat-ops').textContent = opCount.toLocaleString();
+/* ─── STATS ─────────────────────────────────────────── */
+function updateStats(bc, oc) {
+  document.getElementById('s-brands').textContent = bc.toLocaleString();
+  document.getElementById('s-ops').textContent = oc.toLocaleString();
   const parts = [];
-  if (searchTerm) parts.push(`"${searchTerm}"`);
-  if (activeRegion) parts.push(regionLabel(activeRegion));
-  if (activeScales.size < 6) parts.push(activeScales.size + ' scales');
-  document.getElementById('stat-showing').textContent = parts.length ? parts.join(', ') : 'all';
+  if (searchQ) parts.push('"'+searchQ+'"');
+  if (activeReg) parts.push(activeReg);
+  if (activeSc.size < 6) parts.push(activeSc.size+' scales');
+  const fw = document.getElementById('s-filter-wrap');
+  fw.style.display = parts.length ? '' : 'none';
+  document.getElementById('s-filter').textContent = parts.join(', ');
 }
 
-// ── EVENTS ──
-
-// Scale filter pills
-document.querySelectorAll('.scale-pill').forEach(pill => {
-  pill.addEventListener('click', () => {
-    const scale = pill.dataset.scale;
-    if (activeScales.has(scale)) {
-      if (activeScales.size > 1) {
-        activeScales.delete(scale);
-        pill.classList.remove('active');
-        pill.classList.add('inactive');
-      }
-    } else {
-      activeScales.add(scale);
-      pill.classList.add('active');
-      pill.classList.remove('inactive');
-    }
+/* ─── EVENTS ─────────────────────────────────────────── */
+document.querySelectorAll('.spill').forEach(p => {
+  p.addEventListener('click', () => {
+    const s = p.dataset.s;
+    if (activeSc.has(s)) { if (activeSc.size > 1) { activeSc.delete(s); p.classList.add('off'); } }
+    else { activeSc.add(s); p.classList.remove('off'); }
     refresh();
   });
 });
 
-// Search
-let searchDebounce;
+let sDebounce;
 document.getElementById('search').addEventListener('input', e => {
-  clearTimeout(searchDebounce);
-  searchTerm = e.target.value.trim();
-  searchDebounce = setTimeout(() => {
-    if (currentView === 'graph') {
-      applySearch();
-      updateStats(getFiltered().length, new Set(getFiltered().map(b => b.parent)).size);
-    } else {
-      buildListView();
-    }
-  }, 200);
+  clearTimeout(sDebounce);
+  searchQ = e.target.value.trim();
+  sDebounce = setTimeout(() => {
+    if (currentView === 'graph') { applySearch(); updateStats(filtered().length, new Set(filtered().map(b=>b.parent)).size); }
+    else buildList();
+  }, 180);
 });
 
-// Region
-document.getElementById('region-select').addEventListener('change', e => {
-  activeRegion = e.target.value;
+document.getElementById('region-sel').addEventListener('change', e => {
+  activeReg = e.target.value;
   refresh();
 });
 
-// View toggle
-document.querySelectorAll('.view-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentView = btn.dataset.view;
-
-    const svg = document.getElementById('svg-container');
-    const list = document.getElementById('list-view');
-
-    if (currentView === 'graph') {
-      svg.classList.remove('hidden');
-      list.classList.remove('active');
-    } else {
-      svg.classList.add('hidden');
-      list.classList.add('active');
-      buildListView();
-    }
+document.querySelectorAll('.vbtn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.vbtn').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    currentView = b.dataset.v;
+    document.getElementById('svg-wrap').classList.toggle('hide', currentView==='list');
+    document.getElementById('list-view').classList.toggle('show', currentView==='list');
+    if (currentView==='list') buildList();
   });
 });
 
-// Zoom buttons
-document.getElementById('zoom-in').addEventListener('click', () => {
-  svg.transition().duration(300).call(zoom.scaleBy, 1.5);
-});
-document.getElementById('zoom-out').addEventListener('click', () => {
-  svg.transition().duration(300).call(zoom.scaleBy, 0.67);
-});
-document.getElementById('zoom-fit').addEventListener('click', fitView);
-
-function fitView() {
-  if (!svg || !g) return;
-  const container = document.getElementById('svg-container');
-  const W = container.clientWidth, H = container.clientHeight;
-  const bounds = g.node().getBBox();
-  if (!bounds.width || !bounds.height) return;
-  const scale = Math.min(0.9 * W / bounds.width, 0.9 * H / bounds.height, 2);
-  const tx = W/2 - scale*(bounds.x + bounds.width/2);
-  const ty = H/2 - scale*(bounds.y + bounds.height/2);
-  svg.transition().duration(600)
-    .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
-}
+document.getElementById('zin').addEventListener('click', () => svgEl.transition().duration(280).call(zoomBeh.scaleBy, 1.5));
+document.getElementById('zout').addEventListener('click', () => svgEl.transition().duration(280).call(zoomBeh.scaleBy, .67));
+document.getElementById('zfit').addEventListener('click', fitView);
 
 function refresh() {
-  if (currentView === 'graph') {
-    if (simulation) simulation.stop();
-    buildGraph();
-  } else {
-    buildListView();
-  }
+  if (currentView === 'graph') { if (sim) sim.stop(); buildGraph(); }
+  else buildList();
 }
 
-// ── START ──
-init();
+boot();
 </script>
 </body>
 </html>
